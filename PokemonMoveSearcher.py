@@ -5,6 +5,20 @@ import re
 
 def title_case_move(move_name):
     """Helper function to properly capitalize move names"""
+    # Special cases dictionary
+    move_exceptions = {
+        'u-turn': 'U-turn',
+        'v-create': 'V-create',
+        'x-scissor': 'X-Scissor',
+        'g-max': 'G-Max',  # For G-Max moves
+    }
+    
+    # Check if move is a special case
+    move_lower = move_name.lower()
+    if move_lower in move_exceptions:
+        return move_exceptions[move_lower]
+    
+    # Normal processing for other moves
     lowercase_words = {'of', 'the', 'in', 'at', 'to', 'for', 'with', 'on', 'by'}
     words = move_name.split()
     result = []
@@ -16,6 +30,17 @@ def title_case_move(move_name):
             result.append(word.lower())
     
     return '_'.join(result)
+
+def format_pokemon_name(pokemon):
+    """Format Pokemon name for CSV output by removing special characters and spaces"""
+    if pokemon == "Nidoran♂":
+        return "NIDORANmA"
+    elif pokemon == "Nidoran♀":
+        return "NIDORANfE"
+    
+    # Remove spaces and special characters and convert to uppercase
+    formatted = pokemon.replace(" ", "").replace("'", "").replace(".", "").replace("-", "").replace(":", "").upper()
+    return formatted
 
 def get_pokemon_with_move(move_name):
     """
@@ -79,16 +104,9 @@ def get_pokemon_with_move(move_name):
         filename = f"{move_name.lower().replace(' ', '_')}_learners.csv"
         with open(filename, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            formatted_pokemon_list = []
-            for pokemon in pokemon_list:
-                if pokemon == "Nidoran♂":
-                    formatted_pokemon_list.append("NIDORANmA")
-                elif pokemon == "Nidoran♀":
-                    formatted_pokemon_list.append("NIDORANfE")
-                else:
-                    formatted_pokemon_list.append(pokemon.upper())
+            formatted_pokemon_list = [format_pokemon_name(pokemon) for pokemon in pokemon_list]
             writer.writerow(formatted_pokemon_list)
-        
+            
         return pokemon_list
         
     except requests.exceptions.RequestException as e:
@@ -108,4 +126,4 @@ if __name__ == "__main__":
     else:
         print(f"\nNo Pokémon found that can learn {move_name}")
         
-    print(f"\nURL checked: https://bulbapedia.bulbagarden.net/wiki/{move_name.replace(' ', '_').title()}_(move)")
+    print(f"\nURL checked: https://bulbapedia.bulbagarden.net/wiki/{title_case_move(move_name)}_(move)")
